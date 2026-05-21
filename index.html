@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Carte Royale">
+<meta name="theme-color" content="#0a3d2e">
+<title>Carte Royale</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%231a5d4a'/%3E%3Cstop offset='1' stop-color='%23062419'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' fill='url(%23g)' rx='34'/%3E%3Crect x='12' y='12' width='156' height='156' fill='none' stroke='%23d4af37' stroke-width='2.5' rx='26'/%3E%3Crect x='20' y='20' width='140' height='140' fill='none' stroke='%23d4af37' stroke-width='1' rx='20' opacity='0.4'/%3E%3Ctext x='90' y='108' font-family='Georgia, serif' font-size='95' text-anchor='middle' fill='%23f5d97c'%3EA%3C/text%3E%3Ctext x='90' y='148' font-family='Georgia, serif' font-size='32' text-anchor='middle' fill='%23d4af37'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%231a5d4a'/%3E%3Cstop offset='1' stop-color='%23062419'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' fill='url(%23g)' rx='34'/%3E%3Crect x='12' y='12' width='156' height='156' fill='none' stroke='%23d4af37' stroke-width='2.5' rx='26'/%3E%3Crect x='20' y='20' width='140' height='140' fill='none' stroke='%23d4af37' stroke-width='1' rx='20' opacity='0.4'/%3E%3Ctext x='90' y='108' font-family='Georgia, serif' font-size='95' text-anchor='middle' fill='%23f5d97c'%3EA%3C/text%3E%3Ctext x='90' y='148' font-family='Georgia, serif' font-size='32' text-anchor='middle' fill='%23d4af37'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --felt: #0a3d2e; --felt-dark: #062419; --felt-light: #1a5d4a;
+  --gold: #d4af37; --gold-light: #f5d97c; --gold-dark: #8b6914;
+  --cream: #f5e8c7; --cream-soft: #e8dcc0; --red: #b91c1c;
+  --serif: Georgia, 'Times New Roman', serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+html, body {
+  height: 100%; overflow: hidden; font-family: var(--sans);
+  background: radial-gradient(ellipse at center top, var(--felt-light), var(--felt) 40%, var(--felt-dark) 100%);
+  color: var(--cream); user-select: none; -webkit-user-select: none;
+  touch-action: manipulation; overscroll-behavior: none;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+  background-image: repeating-linear-gradient(45deg, transparent 0 2px, rgba(0,0,0,0.04) 2px 3px),
+                    repeating-linear-gradient(-45deg, transparent 0 2px, rgba(255,255,255,0.02) 2px 3px);
+}
+#app {
+  position: relative; z-index: 2; height: 100vh; height: 100dvh;
+  display: flex; flex-direction: column; gap: 8px; max-width: 520px; margin: 0 auto;
+  padding: max(env(safe-area-inset-top, 0px), 8px) 8px max(env(safe-area-inset-bottom, 0px), 8px);
+}
+.top-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.panel {
+  background: linear-gradient(160deg, rgba(13,13,13,0.85), rgba(13,13,13,0.7));
+  border: 1px solid var(--gold-dark); border-radius: 8px; padding: 8px 10px; position: relative;
+}
+.panel::before {
+  content: ''; position: absolute; inset: 2px;
+  border: 1px solid rgba(212,175,55,0.15); border-radius: 6px; pointer-events: none;
+}
+.label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 2px; }
+.big-num { font-family: var(--serif); font-size: 22px; line-height: 1.1; }
+.target-num { color: var(--gold-light); }
+.round-prog { font-size: 11px; color: var(--cream-soft); margin-top: 2px; }
+.score-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 4px; align-items: stretch; }
+.chip-box, .mult-box {
+  padding: 4px 6px; border-radius: 6px; text-align: center;
+  font-family: var(--serif); font-size: 20px; line-height: 1.1; color: white;
+}
+.chip-box { background: linear-gradient(135deg, #2563eb, #1e3a8a); }
+.mult-box { background: linear-gradient(135deg, #dc2626, #7f1d1d); }
+.x-sep { align-self: center; font-family: var(--serif); color: var(--gold); font-size: 16px; }
+.chip-label, .mult-label { font-family: var(--sans); font-size: 8px; letter-spacing: 0.12em; opacity: 0.85; display: block; text-transform: uppercase; }
+.hand-name {
+  text-align: center; font-family: var(--serif); font-size: 17px;
+  color: var(--gold-light); font-style: italic; min-height: 22px;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.5);
+}
+.jokers {
+  display: flex; gap: 6px; padding: 6px;
+  background: rgba(0,0,0,0.3); border: 1px solid var(--gold-dark);
+  border-radius: 6px; min-height: 68px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.jokers::-webkit-scrollbar { height: 4px; }
+.jokers::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 2px; }
+.joker {
+  flex: 0 0 108px; background: linear-gradient(160deg, #2a1f0a, #1a1305);
+  border: 1px solid var(--gold); border-radius: 6px; padding: 5px 6px;
+  font-size: 10px; color: var(--cream);
+}
+.joker-name { font-family: var(--serif); font-size: 11px; color: var(--gold-light); margin-bottom: 2px; line-height: 1.1; }
+.joker-desc { font-size: 9px; line-height: 1.25; color: var(--cream-soft); }
+.joker-empty {
+  flex: 0 0 60px; border: 1px dashed rgba(212,175,55,0.3);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold-dark); font-size: 22px; border-radius: 6px; font-family: var(--serif);
+}
+.stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.stat {
+  background: rgba(0,0,0,0.4); border: 1px solid var(--gold-dark);
+  border-radius: 6px; padding: 5px; text-align: center;
+}
+.stat-label { font-size: 8px; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1px; }
+.stat-val { font-family: var(--serif); font-size: 18px; line-height: 1; }
+.money .stat-val { color: var(--gold-light); }
+.hand-area { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; min-height: 0; }
+.cards-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 6px; padding: 10px 6px 8px; max-width: 360px; margin: 0 auto; justify-items: center; align-content: end; width: 100%; }
+
+.card {
+  width: 100%; max-width: 80px; aspect-ratio: 5 / 7;
+  background: linear-gradient(160deg, #fdfaf2, #f0e8d4);
+  border: 1.5px solid #b8a673; border-radius: 7px; padding: 4px 5px;
+  display: grid; grid-template-rows: auto 1fr auto;
+  cursor: pointer; position: relative; overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-family: var(--serif); color: #1a1a1a;
+}
+.card.red { color: var(--red); }
+.card.selected { transform: translateY(-14px); box-shadow: 0 8px 20px rgba(212,175,55,0.4), 0 0 0 2px var(--gold); }
+.card-corner-top, .card-corner-bottom { display: flex; flex-direction: column; line-height: 1; }
+.card-corner-top { align-items: flex-start; }
+.card-corner-bottom { align-items: flex-end; transform: rotate(180deg); }
+.card-rank { font-size: 15px; font-weight: bold; line-height: 1; }
+.card-suit-small { font-size: 15px; line-height: 1; margin-top: 1px; }
+.card-pips-svg { width: 100%; height: 100%; display: block; fill: currentColor; font-family: var(--serif); font-weight: bold; }
+.card-face { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.face-icon { font-size: 32px; line-height: 1; }
+.face-suit-big { font-size: 22px; line-height: 1; font-weight: bold; }
+.card-ace { display: flex; align-items: center; justify-content: center; font-size: 48px; line-height: 1; font-weight: bold; }
+
+.diff-pill { display: inline-block; margin-left: 4px; padding: 1px 6px; font-size: 8px; letter-spacing: 0.1em; background: var(--gold-dark); color: white; border-radius: 8px; text-transform: uppercase; font-weight: 700; vertical-align: 1px; }
+
+.section-label { font-size: 9px; color: var(--gold); letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; margin: 4px 0 6px; text-align: center; }
+.owned-jokers { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 340px; margin-bottom: 12px; }
+.owned-joker { display: flex; gap: 8px; align-items: center; background: rgba(13,13,13,0.6); border: 1px solid var(--gold-dark); border-radius: 6px; padding: 6px 8px; }
+.owned-joker-info { flex: 1; min-width: 0; }
+.owned-joker-info .joker-name { font-family: var(--serif); font-size: 12px; color: var(--gold-light); }
+.owned-joker-info .joker-desc { font-size: 10px; color: var(--cream-soft); line-height: 1.2; }
+.btn-sell { background: linear-gradient(160deg, #7c2d12, #431407); border: 1px solid #ea580c; color: white; padding: 8px 10px; font-size: 10px; line-height: 1.2; min-width: 64px; }
+
+.diff-btn { display: flex; flex-direction: column; align-items: stretch; padding: 10px 12px !important; gap: 2px; }
+.diff-btn .diff-main { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 800; }
+.diff-btn .diff-sub { font-size: 9px; opacity: 0.8; text-align: left; font-weight: 500; letter-spacing: 0.05em; text-transform: none; }
+.diff-badge { display: inline-block; padding: 1px 6px; font-size: 9px; border-radius: 6px; color: white; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.btn {
+  padding: 12px 6px; border: none; border-radius: 6px;
+  font-family: var(--sans); font-weight: 700; font-size: 12px;
+  letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
+  color: var(--cream); transition: transform 0.1s, filter 0.1s;
+}
+.btn:active:not(:disabled) { transform: translateY(1px); filter: brightness(1.1); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-play { background: linear-gradient(160deg, #166534, #14532d); border: 1px solid #22c55e; color: white; }
+.btn-discard { background: linear-gradient(160deg, #991b1b, #7f1d1d); border: 1px solid #ef4444; color: white; }
+.btn-info { background: linear-gradient(160deg, var(--gold-dark), #5c4607); border: 1px solid var(--gold); }
+.btn small { display: block; font-size: 8px; opacity: 0.85; font-weight: 500; letter-spacing: 0.12em; margin-top: 2px; }
+
+.overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: radial-gradient(ellipse at center, rgba(10,61,46,0.96), rgba(6,36,25,0.99));
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px; overflow-y: auto; animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.overlay-title { font-family: var(--serif); font-size: 32px; color: var(--gold-light); margin-bottom: 4px; text-align: center; }
+.overlay-sub { font-size: 13px; color: var(--cream-soft); margin-bottom: 18px; text-align: center; letter-spacing: 0.05em; }
+
+.modal {
+  background: linear-gradient(160deg, rgba(13,13,13,0.95), rgba(0,0,0,0.95));
+  border: 2px solid var(--gold); border-radius: 12px; padding: 18px 20px;
+  text-align: center; width: 100%; max-width: 340px;
+  box-shadow: 0 0 40px rgba(212,175,55,0.25);
+}
+.modal-title { font-family: var(--serif); font-size: 22px; color: var(--gold-light); margin-bottom: 12px; }
+.modal-line {
+  font-size: 12px; color: var(--cream); margin: 3px 0;
+  display: flex; justify-content: space-between; gap: 12px; text-align: left;
+}
+.modal-line span:last-child { font-family: var(--serif); color: var(--gold-light); text-align: right; }
+.modal-final {
+  font-family: var(--serif); font-size: 32px; color: var(--gold-light);
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--gold-dark);
+}
+.modal .btn { width: 100%; margin-top: 6px; }
+.modal-stack { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+
+.shop-items { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 340px; margin-bottom: 14px; }
+.shop-item {
+  background: linear-gradient(160deg, #2a1f0a, #1a1305);
+  border: 1.5px solid var(--gold); border-radius: 8px; padding: 10px;
+  cursor: pointer; transition: transform 0.15s;
+}
+.shop-item:active { transform: scale(0.97); }
+.shop-item.sold { opacity: 0.25; pointer-events: none; }
+.shop-item.unaffordable { opacity: 0.55; }
+.shop-name { font-family: var(--serif); font-size: 13px; color: var(--gold-light); margin-bottom: 4px; line-height: 1.15; }
+.shop-desc { font-size: 10px; color: var(--cream-soft); line-height: 1.3; margin-bottom: 8px; min-height: 42px; }
+.shop-price {
+  background: var(--gold); color: #0d0d0d; font-weight: 800;
+  padding: 3px 7px; border-radius: 4px; font-size: 11px; display: inline-block;
+}
+.overlay-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 340px; }
+.overlay-row .btn { flex: 1; min-width: 120px; }
+.pulse { animation: pulse 0.4s ease; }
+@keyframes pulse { 0% { transform: scale(0.94); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
+
+.score-list { width: 100%; max-height: 60vh; overflow-y: auto; margin-bottom: 12px; }
+.score-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 4px; border-bottom: 1px solid rgba(212,175,55,0.15);
+  font-size: 12px; gap: 8px;
+}
+.score-row .pos { font-family: var(--serif); color: var(--gold); width: 22px; text-align: left; }
+.score-row .main { flex: 1; }
+.score-row .ante { font-family: var(--serif); font-size: 14px; color: var(--gold-light); }
+.score-row .date { font-size: 10px; color: var(--cream-soft); }
+.score-row.victory { background: rgba(212,175,55,0.08); }
+.score-empty { text-align: center; color: var(--cream-soft); font-size: 13px; padding: 20px 0; }
+
+@media (max-height: 720px) {
+  .card { max-width: 70px; }
+  .card-rank { font-size: 12px; } .card-suit-small { font-size: 10px; }
+  .card-pip { font-size: 10px; } .face-icon { font-size: 27px; }
+  .face-suit-big { font-size: 11px; } .card-ace { font-size: 32px; }
+  .big-num { font-size: 19px; } .chip-box, .mult-box { font-size: 18px; }
+  .cards-row { gap: 8px 5px; padding: 6px 4px; }
+}
+@media (max-width: 370px) {
+  .card { max-width: 66px; }
+  .card-rank { font-size: 11px; } .card-suit-small { font-size: 9px; }
+  .card-pip { font-size: 9px; } .face-icon { font-size: 24px; }
+  .face-suit-big { font-size: 10px; } .card-ace { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top-bar">
+    <div class="panel">
+      <div class="label">Manche <span id="blind-label">1</span> · Niveau <span id="ante-label">1</span> <span class="diff-pill" id="diff-pill">Normal</span></div>
+      <div class="big-num">Cible <span class="target-num" id="target">300</span></div>
+      <div class="round-prog">Score : <span id="round-score">0</span></div>
+    </div>
+    <div class="panel">
+      <div class="label">Score de la main</div>
+      <div class="score-row">
+        <div class="chip-box"><span class="chip-label">Jetons</span><span id="chip-display">0</span></div>
+        <div class="x-sep">×</div>
+        <div class="mult-box"><span class="mult-label">Mult</span><span id="mult-display">0</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="hand-name" id="hand-name">Sélectionnez vos cartes</div>
+  <div class="jokers" id="jokers"></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Mains</div><div class="stat-val" id="hands-left">4</div></div>
+    <div class="stat"><div class="stat-label">Défausses</div><div class="stat-val" id="discards-left">3</div></div>
+    <div class="stat money"><div class="stat-label">Pesos</div><div class="stat-val">$<span id="money">4</span></div></div>
+  </div>
+  <div class="hand-area">
+    <div class="cards-row" id="hand"></div>
+    <div class="actions">
+      <button class="btn btn-play" id="btn-play">Jouer<small>la main</small></button>
+      <button class="btn btn-info" id="btn-menu">Menu<small>options</small></button>
+      <button class="btn btn-discard" id="btn-discard">Défausser<small>les cartes</small></button>
+    </div>
+  </div>
+</div>
+<div id="overlay-host"></div>
+
+<script>
+const SUITS = [
+  { id: 'S', sym: '♠', color: 'black' },
+  { id: 'H', sym: '♥', color: 'red' },
+  { id: 'D', sym: '♦', color: 'red' },
+  { id: 'C', sym: '♣', color: 'black' },
+];
+const SUIT_ORDER = { S: 0, H: 1, D: 2, C: 3 };
+const RANKS = ['2','3','4','5','6','7','8','9','10','V','D','R','A'];
+const RANK_CHIPS = [2,3,4,5,6,7,8,9,10,10,10,10,11];
+const HAND_TYPES = {
+  'Carte haute':  { chips: 5,   mult: 1 },
+  'Paire':        { chips: 10,  mult: 2 },
+  'Deux paires':  { chips: 20,  mult: 2 },
+  'Brelan':       { chips: 30,  mult: 3 },
+  'Suite':        { chips: 30,  mult: 4 },
+  'Couleur':      { chips: 35,  mult: 4 },
+  'Full':         { chips: 40,  mult: 4 },
+  'Carré':        { chips: 60,  mult: 7 },
+  'Quinte flush': { chips: 100, mult: 8 },
+};
+const ANTES = [
+  [300,450,600],[800,1200,1600],[2000,3000,4000],[5000,7500,10000],
+  [11000,16500,22000],[20000,30000,40000],[35000,52500,70000],[50000,75000,100000],
+];
+const BLIND_NAMES = ['Petite blinde','Grosse blinde','Maître de la table'];
+const BLIND_REWARDS = [3,4,5];
+const DIFFICULTIES = {
+  facile:    { name: 'Facile',    mult: 0.7, color: '#22c55e', hands: 4, discards: 3, money: 6 },
+  normal:    { name: 'Normal',    mult: 1.0, color: '#d4af37', hands: 4, discards: 3, money: 4 },
+  difficile: { name: 'Difficile', mult: 1.5, color: '#f97316', hands: 4, discards: 2, money: 4 },
+  expert:    { name: 'Expert',    mult: 2.0, color: '#dc2626', hands: 3, discards: 2, money: 4 },
+};
+const DIFF_ORDER = ['facile', 'normal', 'difficile', 'expert'];
+const JOKERS_POOL = [
+  { id:'arith',   name:"L'Arithmancien",    desc:'+4 au Mult de la main',                          cost:4, mult:4 },
+  { id:'caisse',  name:'La Caisse',          desc:'+30 jetons à la main',                          cost:4, chips:30 },
+  { id:'coeur',   name:'Cœur Brûlant',       desc:'+3 au Mult par ♥ qui marque',                   cost:6, perSuitMult:{H:3} },
+  { id:'diam',    name:'Œil de Diamant',     desc:'+25 jetons par ♦ qui marque',                   cost:6, perSuitChips:{D:25} },
+  { id:'trefle',  name:'Trèfle Chanceux',    desc:'+2 au Mult par ♣ qui marque',                   cost:6, perSuitMult:{C:2} },
+  { id:'pique',   name:'Pique Acéré',        desc:'+20 jetons par ♠ qui marque',                   cost:6, perSuitChips:{S:20} },
+  { id:'egal',    name:"L'Égalisateur",      desc:'Mult ×1.5 si la main contient une Paire (ou mieux)', cost:7, xmultIfPair:1.5 },
+  { id:'quinte',  name:'Le Quinté',          desc:'Mult ×2 si la main est une Suite (ou mieux)',   cost:8, xmultIfStraight:2 },
+  { id:'avare',   name:"L'Avare",            desc:'+$3 en fin de manche (en plus des autres récompenses)', cost:5, endRoundBonus:3 },
+  { id:'cascade', name:'La Cascade',         desc:'+1 Mult permanent à chaque main jouée (cumulatif)', cost:6, cascade:true, stacks:0 },
+  { id:'face',    name:'Cour Royale',        desc:'+20 jetons par figure (V/D/R) qui marque',      cost:6, perFace:{chips:20} },
+  { id:'as',      name:"L'As de Pique",      desc:'+10 au Mult si un As fait partie de la main',   cost:7, ifAceMult:10 },
+];
+const PIP_LAYOUTS = {
+  2: [[1,0],[1,4]],
+  3: [[1,0],[1,2],[1,4]],
+  4: [[0,0],[2,0],[0,4],[2,4]],
+  5: [[0,0],[2,0],[1,2],[0,4],[2,4]],
+  6: [[0,0],[2,0],[0,2],[2,2],[0,4],[2,4]],
+  7: [[0,0],[2,0],[1,1],[0,2],[2,2],[0,4],[2,4]],
+  8: [[0,0],[2,0],[1,1],[0,2],[2,2],[1,3],[0,4],[2,4]],
+  9: [[0,0],[2,0],[0,1],[2,1],[1,2],[0,3],[2,3],[0,4],[2,4]],
+  10:[[0,0],[2,0],[0,1],[1,1],[2,1],[0,3],[1,3],[2,3],[0,4],[2,4]],
+};
+const FACE_ICONS = { 9: '♞', 10: '♛', 11: '♚' };
+const SAVE_KEY = 'carte-royale-save-v2';
+const SCORES_KEY = 'carte-royale-scores-v2';
+
+const state = {
+  deck: [], hand: [], selected: new Set(), jokers: [],
+  ante: 1, blind: 1, target: 300, roundScore: 0,
+  handsLeft: 4, discardsLeft: 3, money: 4,
+  phase: 'play', shopOffer: null, shopSold: [],
+  difficulty: 'normal',
+};
+
+function calcTarget(ante, blind, difficulty) {
+  return Math.round(ANTES[ante - 1][blind - 1] * (DIFFICULTIES[difficulty || 'normal'].mult));
+}
+
+const $ = id => document.getElementById(id);
+const rid = () => Math.random().toString(36).slice(2, 9);
+const suitSym = id => SUITS.find(s => s.id === id).sym;
+const suitColor = id => SUITS.find(s => s.id === id).color;
+
+function buildDeck() {
+  const d = [];
+  for (const s of SUITS) for (let r = 0; r < 13; r++) d.push({ suit: s.id, rank: r, id: rid() });
+  return d;
+}
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function sortHand() {
+  state.hand.sort((a, b) => b.rank - a.rank || SUIT_ORDER[a.suit] - SUIT_ORDER[b.suit]);
+}
+function drawTo(n) {
+  while (state.hand.length < n && state.deck.length) state.hand.push(state.deck.pop());
+  sortHand();
+}
+
+function evalHand(cards) {
+  if (!cards.length) return { name: '—', scoring: [] };
+  const byRank = {}, bySuit = {};
+  cards.forEach(c => { (byRank[c.rank] ||= []).push(c); (bySuit[c.suit] ||= []).push(c); });
+  const counts = Object.values(byRank).map(g => g.length).sort((a, b) => b - a);
+  const flushEntry = Object.entries(bySuit).find(([_, g]) => g.length >= 5);
+  const isFlush = !!flushEntry;
+  const flushCards = isFlush ? flushEntry[1].slice(0, 5) : null;
+  let isStraight = false, straightCards = null;
+  if (cards.length >= 5) {
+    const ranks = [...new Set(cards.map(c => c.rank))].sort((a, b) => a - b);
+    for (let i = 0; i <= ranks.length - 5; i++) {
+      let ok = true;
+      for (let k = 1; k < 5; k++) if (ranks[i + k] !== ranks[i] + k) { ok = false; break; }
+      if (ok) {
+        const set = new Set(ranks.slice(i, i + 5));
+        const seen = new Set(), picked = [];
+        cards.forEach(c => { if (set.has(c.rank) && !seen.has(c.rank)) { picked.push(c); seen.add(c.rank); } });
+        isStraight = true; straightCards = picked; break;
+      }
+    }
+    if (!isStraight) {
+      const low = [12, 0, 1, 2, 3];
+      if (low.every(r => ranks.includes(r))) {
+        const set = new Set(low);
+        const seen = new Set(), picked = [];
+        cards.forEach(c => { if (set.has(c.rank) && !seen.has(c.rank)) { picked.push(c); seen.add(c.rank); } });
+        isStraight = true; straightCards = picked;
+      }
+    }
+  }
+  if (isStraight && isFlush) {
+    const fset = new Set(flushCards.map(c => c.id));
+    const sf = straightCards.filter(c => fset.has(c.id));
+    if (sf.length >= 5) return { name: 'Quinte flush', scoring: sf };
+  }
+  if (counts[0] === 4) return { name: 'Carré', scoring: Object.values(byRank).find(g => g.length === 4) };
+  if (counts[0] === 3 && counts[1] >= 2) {
+    const three = Object.values(byRank).find(g => g.length === 3);
+    const two = Object.values(byRank).find(g => g.length >= 2 && g[0].rank !== three[0].rank);
+    return { name: 'Full', scoring: [...three, ...two.slice(0, 2)] };
+  }
+  if (isFlush) return { name: 'Couleur', scoring: flushCards };
+  if (isStraight) return { name: 'Suite', scoring: straightCards };
+  if (counts[0] === 3) return { name: 'Brelan', scoring: Object.values(byRank).find(g => g.length === 3) };
+  if (counts[0] === 2 && counts[1] === 2) {
+    return { name: 'Deux paires', scoring: Object.values(byRank).filter(g => g.length === 2).flat() };
+  }
+  if (counts[0] === 2) return { name: 'Paire', scoring: Object.values(byRank).find(g => g.length === 2) };
+  const high = [...cards].sort((a, b) => b.rank - a.rank)[0];
+  return { name: 'Carte haute', scoring: [high] };
+}
+
+function scoreHand(played, apply = false) {
+  const evalRes = evalHand(played);
+  const base = HAND_TYPES[evalRes.name];
+  let chips = base.chips, mult = base.mult;
+  const log = [{ label: evalRes.name, chips: base.chips, mult: base.mult, isHeader: true }];
+  for (const c of evalRes.scoring) {
+    const cc = RANK_CHIPS[c.rank];
+    chips += cc;
+    log.push({ label: `${RANKS[c.rank]}${suitSym(c.suit)}`, chips: cc });
+  }
+  for (const j of state.jokers) {
+    if (j.chips) { chips += j.chips; log.push({ label: j.name, chips: j.chips }); }
+    if (j.mult)  { mult  += j.mult;  log.push({ label: j.name, mult: j.mult }); }
+    if (j.perSuitChips) for (const c of evalRes.scoring) {
+      const add = j.perSuitChips[c.suit];
+      if (add) { chips += add; log.push({ label: `${j.name} ${suitSym(c.suit)}`, chips: add }); }
+    }
+    if (j.perSuitMult) for (const c of evalRes.scoring) {
+      const add = j.perSuitMult[c.suit];
+      if (add) { mult += add; log.push({ label: `${j.name} ${suitSym(c.suit)}`, mult: add }); }
+    }
+    if (j.perFace) for (const c of evalRes.scoring) {
+      if (c.rank >= 9 && c.rank <= 11) { chips += j.perFace.chips; log.push({ label: `${j.name} (${RANKS[c.rank]})`, chips: j.perFace.chips }); }
+    }
+    if (j.ifAceMult && evalRes.scoring.some(c => c.rank === 12)) {
+      mult += j.ifAceMult; log.push({ label: j.name, mult: j.ifAceMult });
+    }
+    if (j.cascade) {
+      const v = j.stacks || 0;
+      if (v) { mult += v; log.push({ label: `${j.name} (${v})`, mult: v }); }
+    }
+  }
+  for (const j of state.jokers) {
+    if (j.xmultIfPair && ['Paire','Deux paires','Brelan','Full','Carré'].includes(evalRes.name)) {
+      mult *= j.xmultIfPair; log.push({ label: j.name, xmult: j.xmultIfPair });
+    }
+    if (j.xmultIfStraight && ['Suite','Couleur','Full','Carré','Quinte flush'].includes(evalRes.name)) {
+      mult *= j.xmultIfStraight; log.push({ label: j.name, xmult: j.xmultIfStraight });
+    }
+  }
+  for (const j of state.jokers) if (j.cascade && apply) j.stacks = (j.stacks || 0) + 1;
+  return { evalRes, chips, mult, total: Math.floor(chips * mult), log };
+}
+
+/* ===== STORAGE ===== */
+function saveGame() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      deck: state.deck, hand: state.hand, jokers: state.jokers,
+      ante: state.ante, blind: state.blind, target: state.target,
+      roundScore: state.roundScore, handsLeft: state.handsLeft,
+      discardsLeft: state.discardsLeft, money: state.money,
+      phase: state.phase, shopOffer: state.shopOffer, shopSold: state.shopSold,
+      difficulty: state.difficulty,
+      ts: Date.now(),
+    }));
+  } catch (e) {}
+}
+function loadGame() {
+  try { const r = localStorage.getItem(SAVE_KEY); return r ? JSON.parse(r) : null; }
+  catch (e) { return null; }
+}
+function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+function applyLoad(d) {
+  state.deck = d.deck; state.hand = d.hand; state.jokers = d.jokers;
+  state.ante = d.ante; state.blind = d.blind; state.target = d.target;
+  state.roundScore = d.roundScore; state.handsLeft = d.handsLeft;
+  state.discardsLeft = d.discardsLeft; state.money = d.money;
+  state.selected = new Set();
+  state.phase = d.phase || 'play';
+  state.shopOffer = d.shopOffer || null;
+  state.shopSold = d.shopSold || [];
+  state.difficulty = d.difficulty || 'normal';
+  sortHand();
+  renderAll();
+  if (state.phase === 'shop') openShop();
+  else closeOverlay();
+}
+function loadScores() {
+  try { return JSON.parse(localStorage.getItem(SCORES_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+function saveScore(entry) {
+  try {
+    const s = loadScores();
+    s.push(entry);
+    s.sort((a, b) => (b.won?1:0)-(a.won?1:0) || b.ante - a.ante || b.blind - a.blind || b.date - a.date);
+    localStorage.setItem(SCORES_KEY, JSON.stringify(s.slice(0, 40)));
+  } catch (e) {}
+}
+
+/* ===== RENDERING ===== */
+function cardCenterHtml(card) {
+  const sym = suitSym(card.suit), r = card.rank;
+  if (r === 12) return `<div class="card-ace">${sym}</div>`;
+  if (r >= 9 && r <= 11)
+    return `<div class="card-face"><span class="face-icon">${FACE_ICONS[r]}</span><span class="face-suit-big">${sym}</span></div>`;
+  const count = r + 2;
+  const pips = PIP_LAYOUTS[count].map(([col, row]) => {
+    const x = 5 + col * 10;
+    const y = 8 + row * 14;
+    const rot = row >= 3 ? ` transform="rotate(180 ${x} ${y})"` : '';
+    return `<text x="${x}" y="${y}" font-size="18" text-anchor="middle" dominant-baseline="central"${rot}>${sym}</text>`;
+  }).join('');
+  return `<svg class="card-pips-svg" viewBox="0 0 30 72" preserveAspectRatio="xMidYMid meet">${pips}</svg>`;
+}
+function renderHand() {
+  const el = $('hand');
+  el.innerHTML = '';
+  state.hand.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'card' + (suitColor(c.suit) === 'red' ? ' red' : '');
+    if (state.selected.has(c.id)) card.classList.add('selected');
+    card.innerHTML = `
+      <div class="card-corner-top"><span class="card-rank">${RANKS[c.rank]}</span><span class="card-suit-small">${suitSym(c.suit)}</span></div>
+      ${cardCenterHtml(c)}
+      <div class="card-corner-bottom"><span class="card-rank">${RANKS[c.rank]}</span><span class="card-suit-small">${suitSym(c.suit)}</span></div>
+    `;
+    card.addEventListener('click', () => toggleSelect(c.id));
+    el.appendChild(card);
+  });
+  updatePreview();
+}
+function renderJokers() {
+  const el = $('jokers');
+  el.innerHTML = '';
+  if (!state.jokers.length) {
+    el.innerHTML = '<div class="joker-empty">◇</div>';
+    return;
+  }
+  state.jokers.forEach(j => {
+    const d = document.createElement('div');
+    d.className = 'joker';
+    const stacks = j.cascade ? ` <span style="color:var(--gold)">+${j.stacks||0}</span>` : '';
+    d.innerHTML = `<div class="joker-name">${j.name}${stacks}</div><div class="joker-desc">${j.desc}</div>`;
+    el.appendChild(d);
+  });
+}
+function renderTop() {
+  $('blind-label').textContent = state.blind;
+  $('ante-label').textContent = state.ante;
+  $('target').textContent = state.target.toLocaleString('fr-FR');
+  $('round-score').textContent = state.roundScore.toLocaleString('fr-FR');
+  $('hands-left').textContent = state.handsLeft;
+  $('discards-left').textContent = state.discardsLeft;
+  $('money').textContent = state.money;
+  const d = DIFFICULTIES[state.difficulty || 'normal'];
+  const pill = $('diff-pill');
+  pill.textContent = d.name;
+  pill.style.background = d.color;
+}
+function formatMult(m) { return m % 1 === 0 ? m.toString() : m.toFixed(1); }
+function updatePreview() {
+  const sel = state.hand.filter(c => state.selected.has(c.id));
+  if (!sel.length) {
+    $('hand-name').textContent = 'Sélectionnez vos cartes';
+    $('chip-display').textContent = '0';
+    $('mult-display').textContent = '0';
+    $('btn-play').disabled = true;
+    $('btn-discard').disabled = state.discardsLeft === 0;
+    return;
+  }
+  if (sel.length > 5) {
+    $('hand-name').textContent = 'Maximum 5 cartes';
+    $('btn-play').disabled = true;
+    return;
+  }
+  const preview = scoreHand(sel, false);
+  $('hand-name').textContent = preview.evalRes.name;
+  $('chip-display').textContent = preview.chips;
+  $('mult-display').textContent = formatMult(preview.mult);
+  $('btn-play').disabled = state.handsLeft === 0;
+  $('btn-discard').disabled = state.discardsLeft === 0;
+}
+function toggleSelect(id) {
+  if (state.selected.has(id)) state.selected.delete(id);
+  else { if (state.selected.size >= 5) return; state.selected.add(id); }
+  renderHand();
+}
+function renderAll() { renderTop(); renderHand(); renderJokers(); updatePreview(); }
+
+/* ===== FLOW ===== */
+function newRun(difficulty) {
+  state.difficulty = difficulty || state.difficulty || 'normal';
+  const d = DIFFICULTIES[state.difficulty];
+  state.deck = shuffle(buildDeck());
+  state.hand = []; state.selected.clear(); state.jokers = [];
+  state.ante = 1; state.blind = 1;
+  state.target = calcTarget(1, 1, state.difficulty);
+  state.roundScore = 0; state.handsLeft = d.hands; state.discardsLeft = d.discards; state.money = d.money;
+  state.phase = 'play'; state.shopOffer = null; state.shopSold = [];
+  drawTo(8); saveGame(); renderAll(); closeOverlay();
+}
+function playSelected() {
+  const cards = state.hand.filter(c => state.selected.has(c.id));
+  if (!cards.length || cards.length > 5 || state.handsLeft <= 0) return;
+  state.handsLeft--;
+  state.hand = state.hand.filter(c => !state.selected.has(c.id));
+  const result = scoreHand(cards, true);
+  state.roundScore += result.total;
+  state.selected.clear();
+  drawTo(8);
+  const won = state.roundScore >= state.target;
+  const lost = !won && state.handsLeft <= 0;
+  let after;
+  if (won) {
+    const reward = BLIND_REWARDS[state.blind - 1];
+    const handsUnused = state.handsLeft;
+    const interest = Math.min(5, Math.floor(state.money / 5));
+    let avare = 0;
+    state.jokers.forEach(j => { if (j.endRoundBonus) avare += j.endRoundBonus; });
+    state.money += reward + handsUnused + interest + avare;
+    state.phase = 'shop';
+    state.shopOffer = null;
+    state.shopSold = [];
+    saveGame();
+    after = () => showRoundEnd(reward, handsUnused, interest, avare);
+  } else if (lost) {
+    saveScore({ won: false, ante: state.ante, blind: state.blind, jokers: state.jokers.length, difficulty: state.difficulty, date: Date.now() });
+    clearSave();
+    after = () => showGameOver();
+  } else {
+    saveGame();
+  }
+  renderAll();
+  showScoringAnimation(result, after);
+}
+function discardSelected() {
+  if (!state.selected.size || state.discardsLeft <= 0) return;
+  state.discardsLeft--;
+  state.hand = state.hand.filter(c => !state.selected.has(c.id));
+  state.selected.clear();
+  drawTo(8); saveGame(); renderAll();
+}
+function nextBlind() {
+  state.blind++;
+  if (state.blind > 3) {
+    state.blind = 1; state.ante++;
+    if (state.ante > ANTES.length) {
+      saveScore({ won: true, ante: ANTES.length, blind: 3, jokers: state.jokers.length, difficulty: state.difficulty, date: Date.now() });
+      clearSave(); showVictory(); return;
+    }
+  }
+  const d = DIFFICULTIES[state.difficulty];
+  state.target = calcTarget(state.ante, state.blind, state.difficulty);
+  state.roundScore = 0; state.handsLeft = d.hands; state.discardsLeft = d.discards;
+  state.deck = shuffle(buildDeck()); state.hand = []; state.selected.clear();
+  state.phase = 'play'; state.shopOffer = null; state.shopSold = [];
+  drawTo(8); saveGame(); renderAll(); closeOverlay();
+}
+
+/* ===== SHOP ===== */
+function openShop() {
+  if (!state.shopOffer || !state.shopOffer.length) {
+    const owned = new Set(state.jokers.map(j => j.id));
+    const avail = JOKERS_POOL.filter(j => !owned.has(j.id));
+    shuffle(avail);
+    state.shopOffer = avail.slice(0, 2);
+    state.shopSold = [];
+    saveGame();
+  }
+  renderShop();
+}
+function renderShop() {
+  const items = state.shopOffer || [];
+  const itemsHtml = items.length ? items.map((j, i) => {
+    let cls = '';
+    if (state.shopSold.includes(i)) cls = ' sold';
+    else if (state.money < j.cost || state.jokers.length >= 5) cls = ' unaffordable';
+    return `<div class="shop-item${cls}" data-i="${i}">
+      <div class="shop-name">${j.name}</div>
+      <div class="shop-desc">${j.desc}</div>
+      <div class="shop-price">$${j.cost}</div>
+    </div>`;
+  }).join('') : '<div style="color:var(--cream-soft);font-size:13px;text-align:center;grid-column:1/3;">Aucun joker disponible.</div>';
+
+  let ownedHtml = '';
+  if (state.jokers.length) {
+    ownedHtml = `<div class="section-label">Vos jokers — vendre pour libérer un slot</div>
+    <div class="owned-jokers">${state.jokers.map((j, i) => {
+      const sp = Math.max(1, Math.floor(j.cost / 2));
+      const stacks = j.cascade ? ` <span style="color:var(--gold)">+${j.stacks||0}</span>` : '';
+      return `<div class="owned-joker">
+        <div class="owned-joker-info">
+          <div class="joker-name">${j.name}${stacks}</div>
+          <div class="joker-desc">${j.desc}</div>
+        </div>
+        <button class="btn btn-sell" data-sell="${i}">Vendre<br>$${sp}</button>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  showOverlay(`
+    <div class="overlay-title">Boutique</div>
+    <div class="overlay-sub" id="shop-sub">$${state.money} en poche · Jokers ${state.jokers.length}/5</div>
+    <div class="section-label">Acheter</div>
+    <div class="shop-items">${itemsHtml}</div>
+    ${ownedHtml}
+    <div class="overlay-row">
+      <button class="btn btn-info" id="shop-reroll">Rafraîchir ($5)</button>
+      <button class="btn btn-play" id="shop-next">Manche suivante</button>
+    </div>
+  `);
+  items.forEach((j, i) => {
+    const el = document.querySelector(`.shop-item[data-i="${i}"]`);
+    if (!el) return;
+    el.onclick = () => {
+      if (el.classList.contains('sold') || state.money < j.cost || state.jokers.length >= 5) return;
+      state.money -= j.cost;
+      const copy = JSON.parse(JSON.stringify(j));
+      if (copy.cascade) copy.stacks = 0;
+      state.jokers.push(copy);
+      state.shopSold.push(i);
+      saveGame();
+      renderTop(); renderJokers();
+      renderShop();
+    };
+  });
+  document.querySelectorAll('[data-sell]').forEach(btn => {
+    btn.onclick = () => {
+      const i = parseInt(btn.dataset.sell, 10);
+      const j = state.jokers[i];
+      if (!j) return;
+      const sp = Math.max(1, Math.floor(j.cost / 2));
+      state.money += sp;
+      state.jokers.splice(i, 1);
+      saveGame();
+      renderTop(); renderJokers();
+      renderShop();
+    };
+  });
+  $('shop-reroll').onclick = () => {
+    if (state.money < 5) return;
+    state.money -= 5;
+    const owned = new Set(state.jokers.map(j => j.id));
+    const avail = JOKERS_POOL.filter(j => !owned.has(j.id));
+    shuffle(avail);
+    state.shopOffer = avail.slice(0, 2);
+    state.shopSold = [];
+    saveGame(); renderShop();
+  };
+  $('shop-next').onclick = nextBlind;
+}
+
+/* ===== OVERLAYS ===== */
+function showOverlay(html) { $('overlay-host').innerHTML = `<div class="overlay">${html}</div>`; }
+function closeOverlay() { $('overlay-host').innerHTML = ''; }
+
+function showScoringAnimation(result, done) {
+  const lines = result.log.map(l => {
+    if (l.isHeader) return `<div class="modal-line" style="border-bottom:1px solid var(--gold-dark);padding-bottom:6px;margin-bottom:6px;"><span style="color:var(--gold-light);">${l.label}</span><span>${l.chips} × ${l.mult}</span></div>`;
+    if (l.xmult) return `<div class="modal-line"><span>${l.label}</span><span>×${l.xmult}</span></div>`;
+    const parts = [];
+    if (l.chips) parts.push(`+${l.chips} jetons`);
+    if (l.mult) parts.push(`+${l.mult} mult`);
+    return `<div class="modal-line"><span>${l.label}</span><span>${parts.join(' · ')}</span></div>`;
+  }).join('');
+  showOverlay(`
+    <div class="modal pulse">
+      ${lines}
+      <div class="modal-line" style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--gold-dark);"><span>${result.chips} × ${formatMult(result.mult)}</span><span></span></div>
+      <div class="modal-final">+${result.total.toLocaleString('fr-FR')}</div>
+      <div class="modal-stack"><button class="btn btn-play" id="score-ok">Continuer</button></div>
+    </div>
+  `);
+  $('score-ok').onclick = () => { closeOverlay(); if (done) done(); };
+}
+
+function showRoundEnd(reward, handsUnused, interest, avare) {
+  const total = reward + handsUnused + interest + avare;
+  showOverlay(`
+    <div class="modal">
+      <div class="modal-title">${BLIND_NAMES[state.blind - 1]} battue</div>
+      <div class="modal-line"><span>Récompense</span><span>+$${reward}</span></div>
+      <div class="modal-line"><span>Mains non jouées</span><span>+$${handsUnused}</span></div>
+      <div class="modal-line"><span>Intérêts</span><span>+$${interest}</span></div>
+      ${avare ? `<div class="modal-line"><span>L'Avare</span><span>+$${avare}</span></div>` : ''}
+      <div class="modal-final">+$${total}</div>
+      <div class="modal-stack"><button class="btn btn-play" id="to-shop">Boutique</button></div>
+    </div>
+  `);
+  $('to-shop').onclick = openShop;
+}
+
+function showGameOver() {
+  const d = DIFFICULTIES[state.difficulty || 'normal'];
+  showOverlay(`
+    <div class="modal">
+      <div class="modal-title">Partie terminée</div>
+      <div class="modal-line"><span>Difficulté</span><span style="color:${d.color}">${d.name}</span></div>
+      <div class="modal-line"><span>Atteint</span><span>Niveau ${state.ante} · ${BLIND_NAMES[state.blind - 1]}</span></div>
+      <div class="modal-line"><span>Jokers acquis</span><span>${state.jokers.length}</span></div>
+      <div class="modal-stack">
+        <button class="btn btn-play" id="go-new">Nouvelle partie</button>
+        <button class="btn btn-info" id="go-scores">Records</button>
+      </div>
+    </div>
+  `);
+  $('go-new').onclick = showStart;
+  $('go-scores').onclick = () => showScores(showStart);
+}
+
+function showVictory() {
+  showOverlay(`
+    <div class="modal pulse">
+      <div class="modal-title" style="font-size:28px;">★ Victoire ★</div>
+      <div class="overlay-sub" style="margin-bottom:8px;">Vous avez triomphé des 8 niveaux.</div>
+      <div class="modal-stack">
+        <button class="btn btn-play" id="v-new">Recommencer</button>
+        <button class="btn btn-info" id="v-scores">Records</button>
+      </div>
+    </div>
+  `);
+  $('v-new').onclick = showStart;
+  $('v-scores').onclick = () => showScores(showStart);
+}
+
+function showMenu() {
+  const hasSave = !!loadGame();
+  const d = DIFFICULTIES[state.difficulty || 'normal'];
+  showOverlay(`
+    <div class="modal">
+      <div class="modal-title">Menu</div>
+      <div class="overlay-sub" style="margin-bottom:14px;">Difficulté : <span style="color:${d.color};font-weight:700">${d.name}</span></div>
+      <div class="modal-stack">
+        <button class="btn btn-info" id="m-resume">Reprendre la partie</button>
+        <button class="btn btn-info" id="m-help">Aide & règles</button>
+        <button class="btn btn-info" id="m-hands">Tableau des mains</button>
+        <button class="btn btn-info" id="m-scores">Meilleurs records</button>
+        <button class="btn btn-discard" id="m-new">Nouvelle partie</button>
+      </div>
+      <div style="font-size:10px;color:var(--cream-soft);margin-top:10px;opacity:0.7;">
+        ${hasSave ? 'Sauvegarde locale active.' : 'Pas de sauvegarde.'}
+      </div>
+    </div>
+  `);
+  $('m-resume').onclick = closeOverlay;
+  $('m-help').onclick = showHelp;
+  $('m-hands').onclick = showHandsTable;
+  $('m-scores').onclick = showScores;
+  $('m-new').onclick = () => {
+    clearSave();
+    showStart();
+  };
+}
+
+function showHandsTable() {
+  const rows = Object.entries(HAND_TYPES).reverse().map(([n, v]) =>
+    `<div class="modal-line"><span>${n}</span><span>${v.chips} × ${v.mult}</span></div>`
+  ).join('');
+  showOverlay(`
+    <div class="modal">
+      <div class="modal-title">Tableau des mains</div>
+      ${rows}
+      <div class="modal-stack"><button class="btn btn-play" id="ht-close">Retour</button></div>
+    </div>
+  `);
+  $('ht-close').onclick = showMenu;
+}
+
+function showScores(back) {
+  back = back || showMenu;
+  const scores = loadScores();
+  let inner;
+  if (!scores.length) {
+    inner = '<div class="score-empty">Aucun record. Jouez une partie !</div>';
+  } else {
+    const groups = {};
+    for (const s of scores) {
+      const d = s.difficulty || 'normal';
+      (groups[d] ||= []).push(s);
+    }
+    for (const k of Object.keys(groups)) {
+      groups[k].sort((a, b) => (b.won?1:0)-(a.won?1:0) || b.ante - a.ante || b.blind - a.blind || b.date - a.date);
+    }
+    inner = DIFF_ORDER.filter(d => groups[d]).map(d => {
+      const diff = DIFFICULTIES[d];
+      const rows = groups[d].slice(0, 5).map((s, i) => {
+        const dt = new Date(s.date);
+        const ds = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`;
+        const label = s.won ? '★ Victoire' : `Niveau ${s.ante} · Manche ${s.blind}`;
+        return `<div class="score-row${s.won?' victory':''}">
+          <span class="pos">${i+1}</span>
+          <div class="main"><div class="ante">${label}</div><div class="date">${ds} · ${s.jokers} joker${s.jokers>1?'s':''}</div></div>
+        </div>`;
+      }).join('');
+      return `<div class="section-label" style="color:${diff.color};text-align:left;margin-top:8px;">${diff.name}</div>${rows}`;
+    }).join('');
+  }
+  showOverlay(`
+    <div class="modal">
+      <div class="modal-title">Meilleurs records</div>
+      <div class="score-list">${inner}</div>
+      <div class="modal-stack">
+        <button class="btn btn-play" id="sc-back">Retour</button>
+        ${scores.length ? '<button class="btn btn-discard" id="sc-clear">Effacer les records</button>' : ''}
+      </div>
+    </div>
+  `);
+  $('sc-back').onclick = back;
+  const clr = $('sc-clear');
+  if (clr) clr.onclick = () => {
+    if (confirm('Effacer tous les records ?')) {
+      try { localStorage.removeItem(SCORES_KEY); } catch (e) {}
+      showScores(back);
+    }
+  };
+}
+
+function showHelp(back) {
+  back = back || showMenu;
+  showOverlay(`
+    <div class="modal" style="text-align:left;">
+      <div class="modal-title" style="text-align:center;">Aide & règles</div>
+      <div style="font-size:11px;color:var(--cream);line-height:1.5;">
+
+        <div style="font-family:var(--serif);color:var(--gold-light);font-size:14px;margin:8px 0 4px;">Objectif</div>
+        Atteindre le score <b>Cible</b> avant d'épuiser vos mains.<br>
+        Une partie = <b>8 niveaux</b>, chaque niveau = <b>3 manches</b> (Petite blinde, Grosse blinde, Maître de la table) avec des cibles de plus en plus hautes.
+
+        <div style="font-family:var(--serif);color:var(--gold-light);font-size:14px;margin:10px 0 4px;">Calcul du score</div>
+        <div style="background:rgba(0,0,0,0.3);padding:8px;border-radius:6px;margin-bottom:6px;text-align:center;font-family:var(--serif);color:var(--gold-light);">
+          Score d'une main = ⌊ Jetons × Mult ⌋
+        </div>
+        <b style="color:var(--gold)">Jetons</b> = base de la main (ex: Paire = 10) + valeur de chaque carte <b>qui marque</b> (As=11, V/D/R/10=10, autres=valeur affichée) + bonus jokers<br><br>
+        <b style="color:var(--gold)">Mult</b> = base de la main (ex: Paire = 2) + bonus jokers additifs, puis on applique à la fin les multiplicateurs jokers (×N)
+
+        <div style="font-family:var(--serif);color:var(--gold-light);font-size:14px;margin:10px 0 4px;">"Carte qui marque" ?</div>
+        Vous sélectionnez 1 à 5 cartes. Seules les cartes qui <b>composent réellement la combinaison gagnante</b> ajoutent leurs jetons.<br>
+        <span style="color:var(--cream-soft)">Exemple : si vous sélectionnez 2 Rois + 3 cartes au hasard, seuls les 2 Rois marquent (la combinaison est une Paire). Les 3 autres cartes sont défaussées sans effet.</span>
+
+        <div style="font-family:var(--serif);color:var(--gold-light);font-size:14px;margin:10px 0 4px;">Aperçu en direct</div>
+        Le panneau Jetons × Mult en haut à droite affiche le <b>calcul réel</b> selon votre sélection, jokers inclus. Testez plusieurs combinaisons avant de valider.
+
+        <div style="font-family:var(--serif);color:var(--gold-light);font-size:14px;margin:10px 0 4px;">Hiérarchie des mains</div>
+        Carte haute &lt; Paire &lt; Deux paires &lt; Brelan &lt; Suite &lt; Couleur &lt; Full &lt; Carré &lt; Quinte flush.<br>
+        Voir le <b>Tableau des mains</b> dans le menu pour la base de chaque combinaison.
+
+        <div style="font-family:var(--serif);color:var(--gold-light);font-size:14px;margin:10px 0 4px;">Difficultés</div>
+        ${DIFF_ORDER.map(id => {
+          const d = DIFFICULTIES[id];
+          const firstTarget = calcTarget(1, 1, id);
+          return `<div style="margin:4px 0;"><span style="color:${d.color};font-weight:700">${d.name}</span> — 1ère cible ${firstTarget}, $${d.money} au départ, ${d.hands} mains et ${d.discards} défausses par manche</div>`;
+        }).join('')}
+
+        <div style="font-family:var(--serif);color:var(--gold-light);font-size:14px;margin:10px 0 4px;">Boutique (entre les manches)</div>
+        Achetez jusqu'à 5 jokers, <b>vendez ceux dont vous ne voulez plus</b> (moitié prix d'achat) pour libérer un slot, ou rafraîchissez le stock proposé pour $5.
+
+        <div style="font-family:var(--serif);color:var(--gold-light);font-size:14px;margin:10px 0 4px;">Récompenses de fin de manche</div>
+        Argent gagné = récompense de la manche (3-5$) + 1$ par main non utilisée + intérêts (1$ par tranche de 5$ en poche, max 5$).
+      </div>
+      <div class="modal-stack"><button class="btn btn-play" id="help-close">Retour</button></div>
+    </div>
+  `);
+  $('help-close').onclick = back;
+}
+
+function showStart() {
+  const hasSave = !!loadGame();
+  const diffBtns = DIFF_ORDER.map(id => {
+    const d = DIFFICULTIES[id];
+    const firstTarget = calcTarget(1, 1, id);
+    return `<button class="btn btn-info diff-btn" data-d="${id}" style="border-color:${d.color}">
+      <span class="diff-main">
+        <span style="color:${d.color}">${d.name}</span>
+        <span style="font-size:11px;opacity:0.9;font-family:var(--serif)">1ère cible : ${firstTarget}</span>
+      </span>
+      <span class="diff-sub">$${d.money} au départ · ${d.hands} mains · ${d.discards} défausses par manche</span>
+    </button>`;
+  }).join('');
+  showOverlay(`
+    <div class="modal">
+      <div class="modal-title" style="font-size:30px;">Carte Royale</div>
+      <div class="overlay-sub" style="margin-bottom:14px;">Poker roguelike</div>
+      ${hasSave ? `
+        <div class="modal-stack"><button class="btn btn-play" id="s-resume">Reprendre la partie</button></div>
+        <div style="font-size:10px;color:var(--cream-soft);margin:14px 0 6px;text-align:center;letter-spacing:0.18em;opacity:0.7;">— OU NOUVELLE PARTIE —</div>
+      ` : '<div class="section-label">Nouvelle partie</div>'}
+      <div class="modal-stack">${diffBtns}</div>
+      <div class="modal-stack" style="margin-top:14px;">
+        <button class="btn btn-info" id="s-scores">Records</button>
+        <button class="btn btn-info" id="s-help">Aide & règles</button>
+      </div>
+    </div>
+  `);
+  if (hasSave) $('s-resume').onclick = () => applyLoad(loadGame());
+  document.querySelectorAll('.diff-btn').forEach(b => {
+    b.onclick = () => {
+      const id = b.dataset.d;
+      if (hasSave && !confirm('Démarrer une nouvelle partie ? La sauvegarde actuelle sera perdue.')) return;
+      clearSave();
+      newRun(id);
+    };
+  });
+  $('s-scores').onclick = () => showScores(showStart);
+  $('s-help').onclick = () => showHelp(showStart);
+}
+
+$('btn-play').addEventListener('click', playSelected);
+$('btn-discard').addEventListener('click', discardSelected);
+$('btn-menu').addEventListener('click', showMenu);
+
+/* Boot */
+const saved = loadGame();
+if (saved) {
+  applyLoad(saved);
+  showStart();
+} else {
+  newRun();
+  showStart();
+}
+
+/* Service worker for guaranteed offline (only works on hosted versions, not file://) */
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
